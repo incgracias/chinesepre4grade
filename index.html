@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>中国語学習アプリ</title>
+
+<style>
+body{
+font-family:Arial;
+max-width:700px;
+margin:auto;
+padding:20px;
+text-align:center;
+}
+
+.card{
+border:1px solid #ccc;
+border-radius:10px;
+padding:20px;
+margin-top:20px;
+}
+
+.hanzi{
+font-size:48px;
+font-weight:bold;
+}
+
+.pinyin{
+font-size:35px;
+color:blue;
+}
+
+.english{
+font-size:24px;
+color:green;
+}
+
+.japanese{
+font-size:35px;
+color:red;
+}
+
+.example-cn{
+font-size:36px;
+font-weight:bold;
+margin-top:20px;
+}
+
+.example-py{
+font-size:30px;
+color:blue;
+}
+
+.example-jp{
+font-size:30px;
+color:black;
+}
+
+button{
+font-size:20px;
+padding:10px;
+margin:5px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>中国語検定準4級マスター</h1>
+
+<div class="card">
+
+<div id="hanzi" class="hanzi"></div>
+
+<div id="pinyin" class="pinyin"></div>
+
+<div id="english" class="english"></div>
+
+<div id="japanese" class="japanese"></div>
+
+<div id="example_cn" class="example-cn"></div>
+
+<div id="example_py" class="example-py"></div>
+
+<div id="example_jp" class="example-jp"></div>
+
+<button onclick="speakChinese()">
+🔊 発音
+</button>
+
+<br>
+
+<button onclick="showPinyin()">
+拼音
+</button>
+
+<button onclick="showJapanese()">
+日本語
+</button>
+
+<button onclick="showExample()">
+例文
+</button>
+
+<br>
+
+<button onclick="wrongWord()">
+❌答错
+</button>
+
+<button onclick="studyWrongWords()">
+📚答错复习
+</button>
+
+<br>
+
+<button onclick="prevWord()">
+⬅ 前へ
+</button>
+
+<button onclick="nextWord()">
+➡ 次へ
+</button>
+
+</div>
+
+<script src="words.js"></script>
+
+<script>
+
+let index=0;
+
+function showWord(){
+
+const word = words[index];
+
+document.getElementById("hanzi").innerText =
+word.cn;
+
+document.getElementById("pinyin").innerText = "";
+
+document.getElementById("english").innerText = "";
+
+document.getElementById("japanese").innerText = "";
+
+document.getElementById("example_cn").innerText = "";
+
+document.getElementById("example_py").innerText = "";
+
+document.getElementById("example_jp").innerText = "";
+
+}
+function showPinyin(){
+
+  document.getElementById("pinyin").innerText =
+  words[index].py;
+
+}
+
+function showJapanese(){
+
+  document.getElementById("japanese").innerText =
+  words[index].jp;
+
+}
+
+function showExample(){
+
+  document.getElementById("example_cn").innerText =
+  words[index].ex_cn;
+
+  document.getElementById("example_py").innerText =
+  words[index].ex_py;
+
+  document.getElementById("example_jp").innerText =
+  words[index].ex_jp;
+
+}
+function wrongWord(){
+
+let wrongList =
+JSON.parse(
+localStorage.getItem("wrongList")
+) || [];
+
+if(!wrongList.includes(index)){
+wrongList.push(index);
+}
+
+localStorage.setItem(
+"wrongList",
+JSON.stringify(wrongList)
+);
+
+alert("答错に登録しました");
+
+}
+let wrongMode=false;
+
+function studyWrongWords(){
+
+wrongMode=true;
+
+nextWord();
+
+}
+
+function nextWord(){
+
+if(wrongMode){
+
+let wrongList=
+JSON.parse(
+localStorage.getItem("wrongList")
+)||[];
+
+if(wrongList.length===0){
+
+alert("答错单词还没有");
+
+return;
+}
+
+index=
+wrongList[
+Math.floor(
+Math.random()*wrongList.length
+)
+];
+
+}else{
+
+index++;
+
+if(index>=words.length){
+
+index=0;
+
+}
+
+}
+
+showWord();
+
+}
+
+function prevWord(){
+
+index--;
+
+if(index<0){
+
+index=words.length-1;
+
+}
+
+showWord();
+
+}
+
+function speakChinese(){
+
+function wrongWord(){
+
+  localStorage.setItem(
+    "wrong_" + index,
+    "yes"
+  );
+
+  alert("苦手単語に登録");
+}
+
+let speech=
+new SpeechSynthesisUtterance(
+words[index].cn
+);
+
+speech.lang="zh-CN";
+
+speechSynthesis.speak(speech);
+
+}
+
+showWord();
+
+</script>
+
+</body>
+</html>
