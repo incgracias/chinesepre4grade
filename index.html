@@ -61,12 +61,23 @@ font-size:20px;
 padding:10px;
 margin:5px;
 }
+
+#progress{
+font-size:30px;
+font-weight:bold;
+color:blue;
+margin-bottom:20px;
+}
 </style>
 </head>
 
 <body>
 
 <h1>中国語検定準4級マスター</h1>
+
+<div id="progress">
+1 / 1
+</div>
 
 <div class="card">
 
@@ -87,8 +98,6 @@ margin:5px;
 <button onclick="speakChinese()">
 🔊 発音
 </button>
-
-<br>
 
 <button onclick="showPinyin()">
 拼音
@@ -112,6 +121,10 @@ margin:5px;
 📚答错复习
 </button>
 
+<button onclick="finishReview()">
+✅复习完成
+</button>
+
 <br>
 
 <button onclick="prevWord()">
@@ -124,11 +137,21 @@ margin:5px;
 
 </div>
 
+<hr>
+
+<h2>错词 cuò cí</h2>
+
+<ul id="wrongListArea">
+</ul>
+
 <script src="words.js"></script>
 
 <script>
 
 let index=0;
+
+let wrongMode=false;
+let wrongIndex=0;
 
 function showWord(){
 
@@ -149,6 +172,11 @@ document.getElementById("example_py").innerText = "";
 
 document.getElementById("example_jp").innerText = "";
 
+document.getElementById("progress").innerText =
+(index + 1) + " / " + words.length;
+
+updateWrongList();
+
 }
 function showPinyin(){
 
@@ -162,7 +190,9 @@ function showJapanese(){
   document.getElementById("japanese").innerText =
   words[index].jp;
 
-}
+
+  }
+
 
 function showExample(){
 
@@ -195,52 +225,79 @@ JSON.stringify(wrongList)
 alert("答错に登録しました");
 
 }
-let wrongMode=false;
+let wrongmode=false;
 
 function studyWrongWords(){
 
-wrongMode=true;
+wrongMode=true;  
+reviewingWord = true;
 
 nextWord();
 
 }
-
 function nextWord(){
 
-if(wrongMode){
+  if(wrongMode){
 
-let wrongList=
+    let wrongList =
+    JSON.parse(
+      localStorage.getItem("wrongList")
+    ) || [];
+
+    if(wrongList.length === 0){
+
+      alert("答错单词还没有");
+      return;
+
+    }
+
+    index =
+    wrongList[
+      Math.floor(
+        Math.random() * wrongList.length
+      )
+    ];
+
+  }else{
+
+    index++;
+
+    if(index >= words.length){
+
+      index = 0;
+
+    }
+
+  }
+
+  showWord();
+
+}
+
+function updateWrongList(){
+
+let wrongList =
 JSON.parse(
 localStorage.getItem("wrongList")
-)||[];
+) || [];
 
-if(wrongList.length===0){
+let html = "";
 
-alert("答错单词还没有");
+wrongList.forEach(i=>{
 
-return;
-}
+html +=
+"<li>" +
+words[i].cn +
+" (" +
+words[i].py +
+")" +
+"</li>";
 
-index=
-wrongList[
-Math.floor(
-Math.random()*wrongList.length
-)
-];
+});
 
-}else{
-
-index++;
-
-if(index>=words.length){
-
-index=0;
-
-}
-
-}
-
-showWord();
+document.getElementById(
+"wrongListArea"
+).innerHTML = html;
 
 }
 
@@ -257,31 +314,76 @@ index=words.length-1;
 showWord();
 
 }
+function wrongWord(){
+
+  let wrongList =
+  JSON.parse(
+    localStorage.getItem("wrongList")
+  ) || [];
+
+  if(!wrongList.includes(index)){
+    wrongList.push(index);
+  }
+
+  localStorage.setItem(
+    "wrongList",
+    JSON.stringify(wrongList)
+  );
+
+  updateWrongList();
+
+}
+
+function finishReview(){
+
+    if(!wrongMode){
+        return;
+    }
+
+    let wrongList =
+    JSON.parse(
+        localStorage.getItem("wrongList")
+    ) || [];
+
+    wrongList =
+    wrongList.filter(
+        item => item !== index
+    );
+
+    localStorage.setItem(
+        "wrongList",
+        JSON.stringify(wrongList)
+    );
+
+    updateWrongList();
+
+    if(wrongList.length === 0){
+
+        wrongMode = false;
+
+        alert("復習完了！");
+
+        return;
+    }
+
+    nextWord();
+
+}
 
 function speakChinese(){
 
-function wrongWord(){
-
-  localStorage.setItem(
-    "wrong_" + index,
-    "yes"
+  let speech =
+  new SpeechSynthesisUtterance(
+    words[index].cn
   );
 
-  alert("苦手単語に登録");
-}
+  speech.lang = "zh-CN";
 
-let speech=
-new SpeechSynthesisUtterance(
-words[index].cn
-);
-
-speech.lang="zh-CN";
-
-speechSynthesis.speak(speech);
-
+  speechSynthesis.speak(speech);
 }
 
 showWord();
+updateWrongList();
 
 </script>
 
